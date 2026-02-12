@@ -40,23 +40,69 @@
   </style>
 </head>
 <body>
-  <div class="container">
+    <div class="container">
+    <div>
+      <label>Exam start time:
+        <input type="time" id="startTime" value="11:00">
+      </label>
+      <label>Reading (minutes):
+        <input type="number" id="readingMinutes" value="10" min="0">
+      </label>
+      <label>Writing (minutes):
+        <input type="number" id="writingMinutes" value="180" min="1">
+      </label>
+      <button id="applySettings">Start exam</button>
+    </div>
+
     <div id="phase" class="phase">Waiting to start…</div>
     <div id="time" class="time">00:00:00</div>
     <div id="milestone" class="milestone"></div>
     <div id="info" class="info"></div>
   </div>
 
+
   <script>
-    // ========= CONFIGURE YOUR EXAM HERE =========
-    // Start time (24h format)
-    const examStartHour = 11;   // 9 AM
-    const examStartMinute = 0; // 00
+        let start, readingEnd, examEnd, halfway, fifteenBeforeEnd;
 
-    const readingMinutes = 10; // reading time length
-    const writingMinutes = 180; // exam writing time length
+    const phaseEl = document.getElementById("phase");
+    const timeEl = document.getElementById("time");
+    const infoEl = document.getElementById("info");
+    const milestoneEl = document.getElementById("milestone");
 
-    // ========= END CONFIG =========
+    function setupExamFromInputs() {
+      const timeStr = document.getElementById("startTime").value; // "11:00"
+      const readingMinutes = document.getElementById("readingMinutes").valueAsNumber;
+      const writingMinutes = document.getElementById("writingMinutes").valueAsNumber; [web:19]
+
+      const [hourStr, minuteStr] = timeStr.split(":");
+      const examStartHour = parseInt(hourStr, 10);
+      const examStartMinute = parseInt(minuteStr, 10);
+
+      const now = new Date();
+      start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        examStartHour,
+        examStartMinute,
+        0,
+        0
+      );
+      readingEnd = new Date(start.getTime() + readingMinutes * 60 * 1000);
+      examEnd = new Date(readingEnd.getTime() + writingMinutes * 60 * 1000);
+      halfway = new Date(readingEnd.getTime() + (writingMinutes * 60 * 1000) / 2);
+      fifteenBeforeEnd = new Date(examEnd.getTime() - 15 * 60 * 1000);
+
+      infoEl.textContent =
+        "Start: " + formatClockTime(start) +
+        " | Reading ends: " + formatClockTime(readingEnd) +
+        " | Halfway: " + formatClockTime(halfway) +
+        " | 15 min left: " + formatClockTime(fifteenBeforeEnd) +
+        " | Ends: " + formatClockTime(examEnd);
+    }
+
+    document.getElementById("applySettings").addEventListener("click", setupExamFromInputs);
+
 
     function pad(n) {
       return n.toString().padStart(2, "0");
@@ -77,17 +123,7 @@
       return pad(h) + ":" + pad(m) + ":" + pad(s);
     }
 
-    // Build all the key timestamps once
-    const now = new Date();
-    const start = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      examStartHour,
-      examStartMinute,
-      0,
-      0
-    );
+  
     const readingEnd = new Date(start.getTime() + readingMinutes * 60 * 1000);
     const examEnd = new Date(readingEnd.getTime() + writingMinutes * 60 * 1000);
     const halfway = new Date(readingEnd.getTime() + (writingMinutes * 60 * 1000) / 2);
