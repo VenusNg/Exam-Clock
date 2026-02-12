@@ -1,11 +1,6 @@
 <script>
   let start, readingEnd, examEnd, halfway, fifteenBeforeEnd;
 
-  const phaseEl = document.getElementById("phase");
-  const timeEl = document.getElementById("time");
-  const infoEl = document.getElementById("info");
-  const milestoneEl = document.getElementById("milestone");
-
   function pad(n) {
     return n.toString().padStart(2, "0");
   }
@@ -26,7 +21,13 @@
   }
 
   function setupExamFromInputs() {
-    const timeStr = document.getElementById("startTime").value; // "11:00"
+    // Get DOM elements HERE, after button click (DOM is ready)
+    const phaseEl = document.getElementById("phase");
+    const timeEl = document.getElementById("time");
+    const infoEl = document.getElementById("info");
+    const milestoneEl = document.getElementById("milestone");
+
+    const timeStr = document.getElementById("startTime").value;
     const readingMinutes = document.getElementById("readingMinutes").valueAsNumber;
     const writingMinutes = document.getElementById("writingMinutes").valueAsNumber;
 
@@ -56,12 +57,10 @@
       " | 15 min left: " + formatClockTime(fifteenBeforeEnd) +
       " | Ends: " + formatClockTime(examEnd);
 
-    // Draw immediately after applying settings
-    update();
+    update(phaseEl, timeEl, infoEl, milestoneEl);
   }
 
-  function update() {
-    // If exam not configured yet, do nothing
+  function update(phaseEl, timeEl, infoEl, milestoneEl) {
     if (!start || !readingEnd || !examEnd) {
       return;
     }
@@ -99,11 +98,19 @@
     milestoneEl.textContent = milestoneText;
   }
 
-  document
-    .getElementById("applySettings")
-    .addEventListener("click", setupExamFromInputs);
+  document.getElementById("applySettings").addEventListener("click", setupExamFromInputs);
 
-  // Update every second (will only show something after setupExamFromInputs() runs)
-  setInterval(update, 1000);
+  // Show initial message before config
+  document.getElementById("phase").textContent = "Click 'Start exam' to begin";
+  
+  // Update every second after button click
+  setInterval(() => {
+    if (start) update(
+      document.getElementById("phase"),
+      document.getElementById("time"),
+      document.getElementById("info"),
+      document.getElementById("milestone")
+    );
+  }, 1000);
 </script>
 
