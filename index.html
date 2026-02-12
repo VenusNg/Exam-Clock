@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Exam Clock</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .phase {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .time {
+      font-size: 6rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+    }
+    .info {
+      margin-top: 1.5rem;
+      font-size: 1.2rem;
+      opacity: 0.8;
+    }
+    .milestone {
+      margin-top: 0.5rem;
+      font-size: 1.5rem;
+      color: #ffcc00;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="phase" class="phase">Waiting to start…</div>
+    <div id="time" class="time">00:00:00</div>
+    <div id="milestone" class="milestone"></div>
+    <div id="info" class="info"></div>
+  </div>
+
+  <script>
+    // ========= CONFIGURE YOUR EXAM HERE =========
+    // Start time (24h format)
+    const examStartHour = 11;   // 9 AM
+    const examStartMinute = 0; // 00
+
+    const readingMinutes = 10; // reading time length
+    const writingMinutes = 180; // exam writing time length
+
+    // ========= END CONFIG =========
+
+    function pad(n) {
+      return n.toString().padStart(2, "0");
+    }
+
+    function formatClockTime(date) {
+      const h = date.getHours();
+      const m = date.getMinutes();
+      return pad(h) + ":" + pad(m);
+    }
+
+    function formatDuration(ms) {
+      if (ms < 0) ms = 0;
+      const totalSeconds = Math.floor(ms / 1000);
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return pad(h) + ":" + pad(m) + ":" + pad(s);
+    }
+
+    // Build all the key timestamps once
+    const now = new Date();
+    const start = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      examStartHour,
+      examStartMinute,
+      0,
+      0
+    );
+    const readingEnd = new Date(start.getTime() + readingMinutes * 60 * 1000);
+    const examEnd = new Date(readingEnd.getTime() + writingMinutes * 60 * 1000);
+    const halfway = new Date(readingEnd.getTime() + (writingMinutes * 60 * 1000) / 2);
+    const fifteenBeforeEnd = new Date(examEnd.getTime() - 15 * 60 * 1000);
+
+    const phaseEl = document.getElementById("phase");
+    const timeEl = document.getElementById("time");
+    const infoEl = document.getElementById("info");
+    const milestoneEl = document.getElementById("milestone");
+
+    infoEl.textContent =
+      "Start: " + formatClockTime(start) +
+      " | Reading ends: " + formatClockTime(readingEnd) +
+      " | Halfway: " + formatClockTime(halfway) +
+      " | 15 min left: " + formatClockTime(fifteenBeforeEnd) +
+      " | Ends: " + formatClockTime(examEnd);
+
+    function update() {
+      const now = new Date();
+      let phaseText = "";
+      let milestoneText = "";
+      let remainingMs;
+
+      if (now < start) {
+        phaseText = "Before exam";
+        remainingMs = start - now;
+      } else if (now < readingEnd) {
+        phaseText = "Reading time";
+        remainingMs = readingEnd - now;
+      } else if (now < examEnd) {
+        phaseText = "Exam in progress";
+        remainingMs = examEnd - now;
+
+        if (now >= fifteenBeforeEnd) {
+          milestoneText = "15 minutes remaining";
+        } else if (now >= halfway) {
+          milestoneText = "Halfway through the exam";
+        } else {
+          milestoneText = "";
+        }
+      } else {
+        phaseText = "Exam finished";
+        remainingMs = 0;
+        milestoneText = "";
+      }
+
+      phaseEl.textContent = phaseText;
+      timeEl.textContent = formatDuration(remainingMs);
+      milestoneEl.textContent = milestoneText;
+    }
+
+    // Start updating once per second
+    update();
+    setInterval(update, 1000);
+  </script>
+</body>
+</html>
